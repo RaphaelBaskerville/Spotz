@@ -5,12 +5,13 @@ var express = require('express');
 //TOKEN AUTH
 var jwt = require('jsonwebtoken');
 
-//RAPH'S STUFF (IMAGE UPLOAD)
-var multer = require('multer');
-var upload = multer({
-   dest: __dirname + '/tmp/',
-   limits: { fileSize: 10000000, files:1 }, //limits filesize to 10mb
- });
+//RAPH'S STUFF ACCEL STUFF
+app.post('/parkingSpot', function (req, res, next) {
+  db.newSpot(req.body).then(function (data) {
+    res.status(201).send(data);
+  });
+});
+
 var fs = require('fs');
 var gm = require('gm').subClass({ imageMagick: true });
 
