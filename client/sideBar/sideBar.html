@@ -18,25 +18,26 @@
 
   <ul>
     <button ng-click="toggleAddRuleMenu()">Show/Hide Add Rule Menu</button>
-    <button ng-click="showHideGrid()">Show/Hide Grid</button>
-    <button ng-click="showHidePermitZones()">Show/Hide Permit Zones</button>
-    <button ng-click="showHideStreetSweeping()">Show/Hide Street Sweeping</button>
-    <button ng-click="mobilePreview()">Mobile Preview</button>
+    <button class="{{style.grid}}" ng-click="showOnly('grid')">Hide All</button>
+    <button class="{{style.permit}}" ng-click="showOnly('permit')">Show Only Permit Zones</button>
+    <button class="{{style.meter}}" ng-click="showOnly('meter')">Show Only Meter Zones</button>
+    <button class="{{style.sweep}}" ng-click="showOnly('sweep')">Show Only Street Sweeping</button>
+    <button class="{{style.mobile}}" ng-click="showOnly('mobile')">Mobile Preview</button>
 
     <div class="mobilePreviewFields" ng-show="showMobilePreview">
       <form>
         <div class="previewDate">
-          <span>Date:</span><input type="date" ng-model="preview.date" placeholder="some date" required>
+          <span>Date:</span><input type="date" ng-model="constraints.date" placeholder="some date" required>
         </div>
         <div class="previewTime">
-          <span>Time:</span><input type="text" ng-model="preview.time" placeholder="some time" required>
+          <span>Time:</span><input type="text" ng-model="constraints.time" placeholder="some time" required>
         </div>
         <div class="previewDuration">
-          <span>Duration (in hours):</span><input type="text" ng-model="preview.duration" placeholder="2">
+          <span>Duration (in hours):</span><input type="text" ng-model="constraints.duration" placeholder="2">
         </div>
 
 
-        <input class="submitAction" type="submit" ng-click="savePreviewInput()" value="Submit"/>
+        <input class="submitAction" type="submit" ng-click="showPreview()" value="Submit"/>
     </form>
    </div>
 

@@ -6,29 +6,30 @@ var express = require('express');
 var jwt = require('jsonwebtoken');
 
 //RAPH'S STUFF ACCEL STUFF
-app.post('/parkingSpot', function (req, res, next) {
-  db.newSpot(req.body).then(function (data) {
-    res.status(201).send(data);
-  });
-});
+// app.post('/parkingSpot', function (req, res, next) {
+//   db.newSpot(req.body).then(function (data) {
+//     res.status(201).send(data);
+//   });
+// });
 
 var fs = require('fs');
 var gm = require('gm').subClass({ imageMagick: true });
 
-var tesseract = require('node-tesseract');
+// var tesseract = require('node-tesseract');
 
 // var okrabyte = require('okrabyte');
 
 //DATA BASE
 var ParkingDB = require('./../db/parking.js');
+var ocrData = require('./../db/ocrData.js');
 
 //DEV ONLY
-var env = require('node-env-file');
-
 /**
  * environment file for developing under a local server
  * comment out before deployment
  */
+
+var env = require('node-env-file');
 
 env(__dirname + '/../.env');
 
@@ -118,30 +119,10 @@ verifyToken.delete('/rule/:polyId/:ruleId/:token', verify, function (req, res) {
 
 //TODO: PHOTO UPLOAD upload.single(''),
 verifyToken.post('/photo', function (req, res) {
-  var decode = new Buffer(req.body.data, 'base64');
-  var copy = fs.writeFile(__dirname + '/../tmp/copy1.jpeg', decode, function (err) {
-    if (err) {
-      return console.error(err);
-    }
+  ocrData.create(req.body).then(function (data) {
+    res.send(data);
+  }, function (err) {
 
-    gm(__dirname + '/../tmp/123.jpg')
-    .monochrome()
-      .write(__dirname + '/../tmp/copy3.jpeg', function (err) {
-        if (err) {
-          return console.dir(arguments);
-        }
-
-        tesseract.process(__dirname + '/../tmp/copy3.jpeg', function (err, text) {
-            if (err) {
-              console.error(err);
-              res.send(err);
-            } else {
-              res.send(text);
-            }
-          });
-
-        console.log('SUCCESSSSS');
-      });
-
+    res.send(err);
   });
 });
