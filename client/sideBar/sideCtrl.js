@@ -1,13 +1,15 @@
 'use strict';
 angular.module('spotz.side', ['MapServices'])
 
-.controller('sideCtrl', ['$scope', '$rootScope', '$cookies', '$state', 'MapFactory', '$filter', function ($scope, $rootScope, $cookies, $state, MapFactory, $filter) {
+.controller('sideCtrl', ['$scope', '$rootScope', '$cookies', '$state', 'MapFactory', function ($scope, $rootScope, $cookies, $state, MapFactory) {
+
   // Add rule on click is hidden
   $scope.ShowAddRuleOnClick = false;
   $scope.showMobilePreview = false;
   $scope.preview = {};
   $scope.style = {};
   $scope.constraints = {};
+  $scope.privileges = false;
 
   //turn all modes on
   var mode = {
@@ -24,6 +26,12 @@ angular.module('spotz.side', ['MapServices'])
     true:'enabled',
     false:'',
   };
+
+  $rootScope.$on('admin', function(){
+    if ($cookies.get('privileges') === 'tasmanianDevils') {
+      $scope.privileges = true;
+    }
+  });
 
   //set the initial default mobile preview contraints to the current time and day
   $scope.constraints = {
@@ -62,7 +70,7 @@ angular.module('spotz.side', ['MapServices'])
       $scope.showMobilePreview = true;
       $scope.showPreview();
 
-    }else{
+    } else {
 
       //hide the mobile preview menu
       $scope.showMobilePreview = false;
@@ -72,7 +80,7 @@ angular.module('spotz.side', ['MapServices'])
       $rootScope.constraints.text = newMode;
 
       //filter the results
-      console.log('rootScope',$rootScope.constraints);
+      console.log('rootScope', $rootScope.constraints);
       MapFactory.filterFeatures($rootScope.constraints);
     }
 
@@ -87,7 +95,6 @@ angular.module('spotz.side', ['MapServices'])
     //filter the results
     $rootScope.constraints.text = 'mobile';
     MapFactory.filterFeatures($rootScope.constraints);
-
 
   };
 
