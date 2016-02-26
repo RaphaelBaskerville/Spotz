@@ -20,9 +20,6 @@ var env = require('node-env-file');
 
 // env(__dirname + '/../.env');
 
-var env = require('node-env-file');
-env(__dirname + '/../.env');
-
 //EXPORTING HANDLERS
 module.exports = assignToken;
 

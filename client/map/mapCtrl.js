@@ -2,19 +2,30 @@
 
 angular.module('spotz.map', ['MapServices'])
 
-.controller('mapCtrl', ['$scope', '$rootScope', '$cookies', '$state', 'MapFactory', 'LoginFactory', function ($scope, $rootScope, $cookies, $state, MapFactory, LoginFactory) {
-  $scope.mapLoading = true;
+.controller('mapCtrl', ['$scope', '$rootScope', '$cookies', '$state','MapFactory', 'LoginFactory', function ($scope, $rootScope, $cookies, $state, MapFactory, LoginFactory) {
+  $scope.showLoading = 'hidden';
+  $scope.maxZoomOut = false;
 
-  $rootScope.$on('googleMapLoaded', function () {
-    $scope.mapLoading = false;
+  $rootScope.$on('fetchingStart', function () {
+    $scope.showLoading = 'visible';
   });
 
-  $rootScope.$on('loadMap', function () {
-    $scope.mapLoading = true;
+  $rootScope.$on('fetchingEnd', function () {
+    //set delay to acout for rendering to screen
+    setTimeout(function () {
+      $scope.showLoading = 'hidden';
+      $scope.$apply();
+    },500);
   });
 
-  $rootScope.$on('mapLoaded', function () {
-    $scope.mapLoading = false;
+  $rootScope.$on('maxZoomOutReached', function () {
+    $scope.maxZoomOut = true;
+    $scope.$apply();
+  });
+
+  $rootScope.$on('lessThanMaxZoomOut', function () {
+    $scope.maxZoomOut = false;
+    $scope.$apply();
   });
 
   $scope.deleteRule = function (zoneId, ruleId) {
@@ -31,7 +42,7 @@ angular.module('spotz.map', ['MapServices'])
 
   //load the google map, then return map object in callback
   MapFactory.init(function (map) {
-    $scope.mapLoading = true;
+    $scope.showLoading = true;
     var center = map.getCenter();
 
     //get the parking zones based on the center point
@@ -39,6 +50,7 @@ angular.module('spotz.map', ['MapServices'])
 
     // map data ready, broadcast to the sibling controller (sideCtrl)
     $rootScope.$broadcast('googleMapLoaded');
+    $scope.showLoading = false;
   });
 
 },

@@ -6,7 +6,7 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
   //google tooltip
   var tooltip = {};
   var searchBox = {};
-  var minZoomLevel = 18;
+  var minZoomLevel = 14;
   var boxSize = 0.006;  //size of box to display features on the map
   //map view boundary
   var topRightX;
@@ -87,7 +87,7 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
         if (confirm('Are you sure you want to delete this rule?')) {
           factory.deleteRule(this.dataset.polyid, this.dataset.ruleid).then(function (rules) {
             factory.selectedFeature.feature.setProperty('rules', rules);
-            MapHelperFactory.refreshTooltipText(factory.selectedFeature.feature);
+            factory.refreshTooltipText(factory.selectedFeature.feature);
           });
         }
       });
@@ -104,6 +104,10 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
           if (succeeded) {
             console.log('removing', factory.selectedFeature.feature);
             factory.map.data.remove(factory.selectedFeature.feature);
+
+            //reset the selected feature
+            factory.selectedFeature = undefined;
+
             tooltip.close();
             console.log('delete complete');
           } else {
@@ -154,7 +158,7 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
     //if we made it here, we need to fetch the gridzone from the server
     //mark coordinates as downloaded
     downloadedGridZones[gridStr] = [];
-
+    $rootScope.$emit('fetchingStart');
     return $http({
       method:'GET',
       url: '/api/zones/' + coordinates[0] + '/' + coordinates[1] + '/' + token,
@@ -242,6 +246,7 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
 
       //resolve promise, return array of features
       displayedGridZones[gridStr] = true;
+      $rootScope.$emit('fetchingEnd');
       return downloadedGridZones[gridStr];
 
     });
@@ -250,6 +255,7 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
   factory.removeFeaturesNotIn = function (coordinateArray) {
 
     var displayedZones = {};
+
     for (var i = 0; i < coordinateArray.length; i++) {
       displayedZones[JSON.stringify(MapHelperFactory.computeGridNumbers(coordinateArray[i]))] = true;
     }
@@ -326,18 +332,28 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
   //loads the google API and sets up map initial event listeners
 
   factory.init = function (callback) {
+    //get the google map object
+    if (!window.google) {
+      //hit the google api to get the google object on the window
+      console.log('hitting google API');
+      $http.jsonp('https://maps.googleapis.com/maps/api/js?key=' + KeyFactory.map + '&libraries=places&callback=JSON_CALLBACK')
+      .success(setupMap)
+      .error(function (data) {
+        console.log('map load failed', data);
+      });
+    } else {
+      //dont hit the google api, just setup the map
+      setupMap();
+    }
 
-    //jsonp
-    // added places library to api request.  Required for searchBar option
-    $http.jsonp('https://maps.googleapis.com/maps/api/js?key=' + KeyFactory.map + '&libraries=places&callback=JSON_CALLBACK')
-    .success(function () {
-
+    function setupMap() {
       //=====================================================
       //we have a google.maps object here!
       //SET THE MAIN MAP OBJECTS
       //factory.map, factory.mapEvents, tooltip, searchBox
 
       //create a new map and center to downtown Berkeley
+      console.log('loading map');
       factory.map = new google.maps.Map(document.getElementById('map'), {
         zoom: 18,
         center: { lng: -122.26156639099121, lat: 37.86434903305901 },
@@ -347,9 +363,11 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
       factory.mapEvents = google.maps.event;
 
       //save the tooltip (infowindow) in a local variable
+      console.log('creating tooltip');
       tooltip = new google.maps.InfoWindow();
 
       // Create the search box and link it to the UI element.
+      console.log('creating searchbar');
       searchBox = new google.maps.places.SearchBox(document.getElementById('pac-input'));
 
       //=====================================================
@@ -407,7 +425,7 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
       //=====================================================
       // Listener for loading in data as the map scrolls
 
-      factory.map.addListener('center_changed', function () {
+      function refreshDisplayedFeatures() {
         var coordinates = [factory.map.getCenter().lng(), factory.map.getCenter().lat()];
         var boxBoundaries = [
           [coordinates[0] + boxSize, coordinates[1] + boxSize],
@@ -421,8 +439,11 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
         });
 
         factory.removeFeaturesNotIn(boxBoundaries);
+      }
 
-      });
+      //add listenter to debounced version of refreshDisplayedFeatures (front end optimization)
+      factory.map.addListener('center_changed', MapHelperFactory.debounce(refreshDisplayedFeatures, 250));
+
 
       //=====================================================
       //Google search bar functionality
@@ -454,7 +475,16 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
       //=====================================================
       // Limit the zoom level
       google.maps.event.addListener(factory.map, 'zoom_changed', function () {
-        if (factory.map.getZoom() < minZoomLevel) { factory.map.setZoom(minZoomLevel); }
+
+        var currentZoomLevel = factory.map.getZoom();
+
+        if (currentZoomLevel < minZoomLevel) {
+          factory.map.setZoom(minZoomLevel);
+          $rootScope.$broadcast('maxZoomOutReached');
+        }
+        else if (currentZoomLevel > minZoomLevel)  {
+          $rootScope.$broadcast('lessThanMaxZoomOut');
+        }
       });
 
       //=====================================================
@@ -475,9 +505,8 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
       //execute the callack passed in, returning the map object
       callback(factory.map);
 
-    }).error(function (data) {
-      console.log('map load failed', data);
-    });
+    }
+
   };
 
   return factory;
