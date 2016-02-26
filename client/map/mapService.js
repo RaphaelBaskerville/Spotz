@@ -444,7 +444,6 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
       //add listenter to debounced version of refreshDisplayedFeatures (front end optimization)
       factory.map.addListener('center_changed', MapHelperFactory.debounce(refreshDisplayedFeatures, 250));
 
-
       //=====================================================
       //Google search bar functionality
 
@@ -481,8 +480,7 @@ angular.module('MapServices', ['AdminServices', 'MapHelpers'])
         if (currentZoomLevel < minZoomLevel) {
           factory.map.setZoom(minZoomLevel);
           $rootScope.$broadcast('maxZoomOutReached');
-        }
-        else if (currentZoomLevel > minZoomLevel)  {
+        } else if (currentZoomLevel > minZoomLevel)  {
           $rootScope.$broadcast('lessThanMaxZoomOut');
         }
       });

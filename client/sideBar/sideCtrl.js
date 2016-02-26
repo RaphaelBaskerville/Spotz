@@ -46,6 +46,10 @@ angular.module('spotz.side', ['MapServices', 'SideServices'])
     }
   });
 
+  $rootScope.$on('logOut', function () {
+    $scope.privileges = false;
+  });
+
   //set the initial default mobile preview contraints to the current time and day
   $scope.constraints = {
     date: new Date(),
@@ -123,6 +127,7 @@ angular.module('spotz.side', ['MapServices', 'SideServices'])
     //disable the drawing factory mode
     DrawingFactory.addPolygonOnClick(false);
     $scope.style.addNewFeature = '';
+    $scope.ShowAddFeatureMenu = false;
 
   };
 

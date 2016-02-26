@@ -4,16 +4,20 @@ var express = require('express');
 
 //TOKEN AUTH
 var jwt = require('jsonwebtoken');
+require('./env.js');
 
 //DATA BASE
 var ParkingDB = require('./../db/parking.js');
 var ocrData = require('./../db/ocrData.js');
 
+<<<<<<< HEAD
 //DEV ONLY
 var env = require('node-env-file');
 
 env(__dirname + '/../.env');
 
+=======
+>>>>>>> 7ae51e3a33eb8729b28238fb0dd538dc45f7cd0c
 //EXPORT ROUTER
 var verifyToken = express.Router();
 module.exports = verifyToken;
@@ -21,9 +25,13 @@ module.exports = verifyToken;
 //REQUIRED KEYS
 var JWT_SECRET = process.env.JWTSECRET;
 var JWT_ADMINSECRET = process.env.JWTADMINSECRET;
+<<<<<<< HEAD
 
 //verify before running function
+=======
+>>>>>>> 7ae51e3a33eb8729b28238fb0dd538dc45f7cd0c
 
+//Verify Token before running function
 var verifyUser = function (req, res, next) {
 
   //token is either in the body or the request params
